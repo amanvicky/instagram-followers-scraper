@@ -3,185 +3,659 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Instagram Follower Comparator</title>
+<title>Instagram Follower Collector | Local Excel Reports</title>
 <style>
   :root {
-    --accent: #4F46E5; --accent-dark: #4338CA; --green: #059669;
-    --red: #DC2626; --amber: #B45309; --ink: #111827; --muted: #6B7280;
-    --line: #E5E7EB; --bg: #F3F4F6; --card: #FFFFFF;
+    --bg: #f5f7fb;
+    --bg-strong: #eef3ff;
+    --panel: rgba(255,255,255,0.94);
+    --panel-strong: #ffffff;
+    --line: #e6ebf5;
+    --line-strong: #d7dded;
+    --text: #171c2e;
+    --muted: #5f6b85;
+    --muted-2: #7c889d;
+    --primary: #4f46e5;
+    --primary-strong: #3d36c7;
+    --primary-soft: rgba(79, 70, 229, 0.10);
+    --green: #239a62;
+    --green-soft: rgba(35, 154, 98, 0.10);
+    --amber: #a35b00;
+    --amber-soft: rgba(163, 91, 0, 0.10);
+    --red: #d64242;
+    --red-soft: rgba(214, 66, 66, 0.10);
+    --shadow: 0 18px 45px rgba(41, 56, 96, 0.10);
+    --radius-xl: 24px;
+    --radius-lg: 18px;
+    --radius-md: 12px;
   }
+
   * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
   body {
-    font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
-    background: var(--bg); color: var(--ink); min-height: 100vh;
-    display: flex; justify-content: center; padding: 32px 16px;
+    font-family: "Segoe UI", Inter, "Helvetica Neue", Arial, sans-serif;
+    background:
+      radial-gradient(circle at top left, rgba(126, 118, 255, 0.17), transparent 28%),
+      radial-gradient(circle at bottom right, rgba(79, 70, 229, 0.12), transparent 30%),
+      var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 32px 18px 50px;
   }
-  main { width: 100%; max-width: 720px; }
-  .banner {
-  .stop-row { display: flex; align-items: center; gap: 10px; margin-top: 10px; }
-  .btn-stop {
-    background: #fff; color: var(--red); border: 1px solid #FECACA;
-    margin: 0; width: auto; padding: 8px 16px; font-size: 13px;
-    flex-shrink: 0;
+
+  .page-shell {
+    width: min(1040px, 100%);
+    margin: 0 auto;
   }
-  .btn-stop:hover:not(:disabled) { background: #FEF2F2; }
-  .stop-hint { color: var(--muted); font-size: 12px; }
-  .live-title { font-size: 12px; font-weight: 600; color: var(--muted);
-    margin-top: 14px; text-transform: uppercase; letter-spacing: .04em; }
-  .live-list {
-    display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px;
-    max-height: 150px; overflow-y: auto; padding: 2px;
+
+  .topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 18px;
+    margin-bottom: 18px;
+    padding: 4px 2px;
   }
-  .live-name {
-    font-family: Consolas, Menlo, monospace; font-size: 12px;
-    background: #EEF2FF; color: #3730A3; border-radius: 6px; padding: 3px 8px;
+
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
   }
-  h1 { font-size: 22px; margin-bottom: 4px; }
-  .sub { color: var(--muted); font-size: 14px; margin-bottom: 20px; }
-  .card {
-    background: var(--card); border: 1px solid var(--line);
-    border-radius: 12px; padding: 20px; margin-bottom: 16px;
+
+  .brand-mark {
+    width: 38px;
+    height: 38px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+    display: grid;
+    place-items: center;
+    color: white;
+    font-weight: 700;
+    box-shadow: 0 10px 18px rgba(79, 70, 229, 0.28);
   }
-  label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; }
-  .hint { color: var(--muted); font-weight: 400; }
-  input[type="text"], textarea {
-    width: 100%; border: 1px solid var(--line); border-radius: 8px;
-    padding: 10px 12px; font-size: 14px; font-family: inherit;
-    background: #fff; outline: none;
+
+  .brand-text {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
   }
-  input[type="text"], textarea, select {
-    width: 100%; border: 1px solid var(--line); border-radius: 8px;
-    padding: 10px 12px; font-size: 14px; font-family: inherit;
-    background: #fff; outline: none;
+
+  .brand-name {
+    font-weight: 700;
+    font-size: 1rem;
+    letter-spacing: -0.02em;
   }
-  input[type="text"]:focus, textarea:focus, select:focus { border-color: var(--accent); }
-  select { cursor: pointer; }
-  textarea { min-height: 110px; resize: vertical; }
-  textarea.mono, .mono { font-family: Consolas, Menlo, monospace; }
+
+  .brand-sub {
+    color: var(--muted-2);
+    font-size: 0.75rem;
+  }
+
+  .status-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    border-radius: 999px;
+    background: rgba(255,255,255,0.72);
+    border: 1px solid var(--line);
+    color: var(--muted);
+    font-size: 0.78rem;
+    box-shadow: 0 8px 18px rgba(17, 24, 39, 0.03);
+  }
+
+  .status-pill::before {
+    content: "";
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #22c55e, #16a34a);
+    box-shadow: 0 0 0 5px rgba(34, 197, 94, 0.10);
+  }
+
+  .app {
+    display: grid;
+    gap: 20px;
+  }
+
+  .panel {
+    background: var(--panel);
+    border: 1px solid rgba(220, 227, 240, 0.96);
+    box-shadow: var(--shadow);
+    border-radius: var(--radius-xl);
+    padding: 24px;
+    backdrop-filter: blur(10px);
+  }
+
+  .hero {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 18px;
+    padding: 8px 4px 20px;
+  }
+
+  .hero-copy {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  h1 {
+    font-size: clamp(2rem, 2.5vw, 2.7rem);
+    letter-spacing: -0.06em;
+    line-height: 1.05;
+    font-weight: 800;
+  }
+
+  .sub {
+    color: var(--muted);
+    line-height: 1.65;
+    font-size: 0.98rem;
+    max-width: 760px;
+  }
+
+  .hero-note {
+    background: linear-gradient(135deg, rgba(79,70,229,0.07), rgba(124,58,237,0.04));
+    border: 1px solid rgba(79,70,229,0.12);
+    color: var(--primary-strong);
+    border-radius: 14px;
+    padding: 10px 12px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    width: fit-content;
+  }
+
+  .form-grid {
+    display: grid;
+    grid-template-columns: 1.5fr minmax(210px, 0.8fr);
+    gap: 18px;
+    margin-top: 8px;
+  }
+
+  .stack {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+  }
+
+  .field {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .field label {
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    color: var(--text);
+  }
+
+  .field .hint {
+    font-weight: 500;
+    color: var(--muted-2);
+  }
+
+  .field input,
+  .field textarea,
+  .field select {
+    width: 100%;
+    background: rgba(255,255,255,0.92);
+    border: 1px solid var(--line-strong);
+    border-radius: 14px;
+    padding: 14px 16px;
+    font: inherit;
+    color: var(--text);
+    transition: border-color 0.16s ease, box-shadow 0.16s ease, transform 0.16s ease;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.7);
+  }
+
+  .field input::placeholder,
+  .field textarea::placeholder {
+    color: var(--muted-2);
+  }
+
+  .field input:focus,
+  .field textarea:focus,
+  .field select:focus {
+    outline: none;
+    border-color: rgba(79, 70, 229, 0.6);
+    box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.11);
+  }
+
+  textarea {
+    min-height: 130px;
+    resize: vertical;
+  }
+
+  .mono {
+    font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+  }
+
   .drop {
-    margin-top: 10px; border: 1.5px dashed var(--line); border-radius: 8px;
-    padding: 14px; text-align: center; color: var(--muted); font-size: 13px;
-    cursor: pointer; transition: border-color .15s, background .15s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 74px;
+    padding: 12px 16px;
+    text-align: center;
+    border-radius: 14px;
+    border: 1.5px dashed rgba(113, 125, 170, 0.65);
+    background: linear-gradient(180deg, rgba(250,250,255,0.75), rgba(245,247,255,0.9));
+    color: var(--muted);
+    cursor: pointer;
+    transition: border-color 0.16s ease, background 0.16s ease, transform 0.16s ease;
   }
-  .drop:hover, .drop.over { border-color: var(--accent); background: #EEF2FF; }
-  .drop:focus-within { outline: 2px solid var(--accent); outline-offset: 2px; }
-  .drop input[type="file"] { display: block; width: 100%; margin-bottom: 8px; }
-  button {
-    width: 100%; margin-top: 14px; padding: 12px; border: 0; border-radius: 8px;
-    background: var(--accent); color: #fff; font-size: 15px; font-weight: 600;
-    cursor: pointer; transition: background .15s;
+
+  .drop:hover,
+  .drop.over {
+    border-color: rgba(79, 70, 229, 0.7);
+    background: rgba(79, 70, 229, 0.04);
+    transform: translateY(-1px);
   }
-  button:hover:not(:disabled) { background: var(--accent-dark); }
-  button:disabled { opacity: .55; cursor: not-allowed; }
-  .hidden { display: none; }
-  .progress-wrap { margin-top: 4px; }
-  .phase { font-size: 14px; font-weight: 600; }
-  .count { color: var(--muted); font-size: 13px; margin-top: 2px; }
-  .bar { height: 8px; background: var(--line); border-radius: 99px; margin-top: 10px; overflow: hidden; }
-  .bar > div {
-    height: 100%; width: 0%; background: var(--accent); border-radius: 99px;
-    transition: width .4s ease;
+
+  .drop input[type="file"] {
+    display: block;
+    width: 100%;
+    margin-bottom: 8px;
+    color: var(--muted);
   }
-  .bar.indeterminate > div { width: 40%; animation: slide 1.2s infinite linear; }
-  @keyframes slide { from { margin-left: -40%; } to { margin-left: 100%; } }
-  .error-box {
-    margin-top: 12px; background: #FEF2F2; border: 1px solid #FECACA;
-    color: var(--red); border-radius: 8px; padding: 12px; font-size: 14px;
+
+  .primary-btn,
+  .secondary-btn,
+  .btn-dl {
+    appearance: none;
+    border: none;
+    font: inherit;
+    border-radius: 14px;
+    cursor: pointer;
+    transition: transform 0.16s ease, box-shadow 0.16s ease, background 0.16s ease;
   }
+
+  .primary-btn {
+    width: 100%;
+    margin-top: 8px;
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-strong) 100%);
+    color: white;
+    font-weight: 700;
+    padding: 15px 18px;
+    box-shadow: 0 14px 24px rgba(79, 70, 229, 0.23);
+  }
+
+  .primary-btn:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: 0 18px 26px rgba(79, 70, 229, 0.28);
+  }
+
+  .primary-btn:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+  }
+
+  .secondary-btn,
+  .btn-stop {
+    border: 1px solid rgba(214, 66, 66, 0.22);
+    background: rgba(214, 66, 66, 0.04);
+    color: var(--red);
+    padding: 10px 14px;
+    font-weight: 700;
+  }
+
+  .secondary-btn:hover:not(:disabled),
+  .btn-stop:hover:not(:disabled) {
+    background: rgba(214, 66, 66, 0.08);
+  }
+
+  .error-box,
   .warn-box {
-    margin-top: 12px; background: #FFFBEB; border: 1px solid #FDE68A;
-    color: var(--amber); border-radius: 8px; padding: 12px; font-size: 13px;
+    border-radius: 14px;
+    padding: 14px 16px;
+    font-size: 0.92rem;
+    line-height: 1.5;
   }
-  .stats { display: flex; gap: 10px; margin: 6px 0 4px; flex-wrap: wrap; }
+
+  .error-box {
+    background: var(--red-soft);
+    border: 1px solid rgba(214, 66, 66, 0.18);
+    color: var(--red);
+  }
+
+  .warn-box {
+    background: var(--amber-soft);
+    border: 1px solid rgba(163, 91, 0, 0.16);
+    color: var(--amber);
+  }
+
+  .progress-panel {
+    overflow: hidden;
+  }
+
+  .progress-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .phase {
+    font-size: 1rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+
+  .count {
+    font-size: 0.9rem;
+    color: var(--muted);
+  }
+
+  .count.warn {
+    color: var(--amber);
+  }
+
+  .progress-bar {
+    position: relative;
+    width: 100%;
+    height: 12px;
+    background: #edf0f8;
+    border-radius: 999px;
+    overflow: hidden;
+    border: 1px solid rgba(182, 190, 209, 0.8);
+  }
+
+  .progress-fill {
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: 0%;
+    border-radius: inherit;
+    background: linear-gradient(90deg, var(--primary) 0%, #7c3aed 100%);
+    transition: width 0.35s ease;
+  }
+
+  .progress-bar.indeterminate .progress-fill {
+    width: 32%;
+    animation: pulse-bar 1.4s ease-in-out infinite alternate;
+  }
+
+  @keyframes pulse-bar {
+    from { transform: translateX(-32%) scaleX(0.8); }
+    to { transform: translateX(180%) scaleX(1.1); }
+  }
+
+  .stop-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 6px;
+  }
+
+  .stop-row .secondary-btn {
+    width: auto;
+    margin: 0;
+    min-width: 94px;
+  }
+
+  .stop-hint {
+    font-size: 0.8rem;
+    color: var(--muted);
+  }
+
+  .live-title {
+    margin-top: 8px;
+    font-size: 0.76rem;
+    text-transform: uppercase;
+    letter-spacing: 0.09em;
+    color: var(--muted-2);
+    font-weight: 700;
+  }
+
+  .live-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 10px;
+    max-height: 150px;
+    overflow-y: auto;
+    padding: 8px 0 2px;
+  }
+
+  .live-name {
+    border-radius: 999px;
+    background: var(--primary-soft);
+    color: var(--primary-strong);
+    padding: 6px 10px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    border: 1px solid rgba(79, 70, 229, 0.10);
+  }
+
+  .results-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 12px;
+  }
+
   .stat {
-    flex: 1 1 120px; background: var(--bg); border-radius: 8px;
-    padding: 12px; text-align: center;
+    background: linear-gradient(180deg, rgba(248,250,255,0.9), rgba(255,255,255,0.9));
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    padding: 16px 12px;
+    text-align: center;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.7);
   }
-  .stat b { display: block; font-size: 22px; }
-  .stat span { font-size: 12px; color: var(--muted); }
+
+  .stat b {
+    display: block;
+    font-size: clamp(1.4rem, 2vw, 2rem);
+    letter-spacing: -0.05em;
+    margin-bottom: 6px;
+    color: var(--text);
+  }
+
+  .stat span {
+    font-size: 0.74rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--muted);
+    font-weight: 700;
+  }
+
   .stat.match b { color: var(--green); }
   .stat.miss b { color: var(--red); }
-  h2 { font-size: 15px; margin: 14px 0 8px; }
-  table { width: 100%; border-collapse: collapse; font-size: 13px; }
-  th { text-align: left; color: var(--muted); font-weight: 600; padding: 6px 8px;
-       border-bottom: 1px solid var(--line); }
-  td { padding: 6px 8px; border-bottom: 1px solid var(--line); }
-  .scrolly { max-height: 260px; overflow: auto; }
-  .btn-dl {
-    display: inline-block; width: auto; padding: 10px 18px; text-decoration: none;
-    text-align: center; background: var(--green); margin-top: 12px;
+
+  h2 {
+    font-size: 1rem;
+    margin: 4px 0 8px;
+    letter-spacing: -0.02em;
   }
-  .btn-dl:hover { background: #047857; }
-  footer { text-align: center; color: var(--muted); font-size: 12px; margin-top: 8px; }
+
+  .scrolly {
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    overflow: auto;
+    background: rgba(255,255,255,0.7);
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 420px;
+    font-size: 0.9rem;
+  }
+
+  th, td {
+    padding: 12px 14px;
+    border-bottom: 1px solid var(--line);
+    text-align: left;
+    vertical-align: middle;
+  }
+
+  th {
+    color: var(--muted);
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    font-weight: 700;
+    background: rgba(244,247,255,0.8);
+  }
+
+  td {
+    color: var(--text);
+  }
+
+  td a {
+    color: var(--primary-strong);
+    text-decoration: none;
+    font-weight: 600;
+  }
+
+  .btn-dl {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: fit-content;
+    padding: 12px 18px;
+    background: linear-gradient(135deg, #179a63 0%, #0f764c 100%);
+    color: white;
+    text-decoration: none;
+    font-weight: 700;
+    box-shadow: 0 14px 24px rgba(21, 128, 61, 0.18);
+  }
+
+  .btn-dl:hover {
+    transform: translateY(-1px);
+  }
+
+  footer {
+    text-align: center;
+    color: var(--muted);
+    font-size: 0.74rem;
+    margin-top: 18px;
+    padding-bottom: 4px;
+  }
+
+  .hidden { display: none !important; }
+
+  @media (max-width: 760px) {
+    body { padding: 22px 12px 36px; }
+    .hero { align-items: flex-start; flex-direction: column; }
+    .form-grid { grid-template-columns: 1fr; }
+    .panel { padding: 18px; border-radius: 20px; }
+    h1 { font-size: 2rem; }
+  }
 </style>
 </head>
 <body>
-<main>
-  <h1>Instagram Follower Comparator</h1>
-    <p class="sub">Collect the follower (or following) names Instagram exposes while you are logged out.
-      No app account or Instagram sign-in is used. Instagram may limit or hide names for some accounts.
-      Several accounts can be collected in one run into a single workbook.</p>
+  <div class="page-shell">
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand-mark">IG</div>
+        <div class="brand-text">
+          <span class="brand-name">Instagram Follower Collector</span>
+          <span class="brand-sub">A local tool for public profile lists</span>
+        </div>
+      </div>
+      <div class="status-pill">No Instagram sign-in</div>
+    </header>
 
-  <div class="card" id="inputCard">
-    <label for="target">Target Instagram account(s) <span class="hint">(up to 10, separated by commas or spaces)</span></label>
-    <input type="text" id="target" placeholder="e.g. nasa, nintendo, adi" autocomplete="off" spellcheck="false">
+    <main class="app">
+      <section class="panel">
+        <div class="hero">
+          <div class="hero-copy">
+            <div class="hero-note">Public lists. Useful reports. Kept on your device.</div>
+            <h1>Turn public follower and following lists into useful reports.</h1>
+            <p class="sub">Collect the follower or following names Instagram shows to logged-out visitors. Compare them with a list you provide, then export the results to Excel from your own computer.</p>
+            <p class="sub">Instagram may limit what it shows, so reports reflect only the names available during your run.</p>
+          </div>
+        </div>
 
-    <div style="margin-top:10px">
-      <label for="list">Which list to collect</label>
-      <select id="list">
-        <option value="following" selected>Following (who they follow)</option>
-        <option value="followers">Followers (who follows them)</option>
-      </select>
-    </div>
+        <div class="form-grid" id="inputCard">
+          <div class="stack">
+            <div class="field">
+              <label for="target">Public profile usernames <span class="hint">up to 10, separated by commas or spaces</span></label>
+              <input type="text" id="target" placeholder="e.g. nasa, nintendo, adi" autocomplete="off" spellcheck="false">
+            </div>
 
-    <div style="margin-top:10px">
-      <label for="max">Stop after this many usernames per account <span class="hint">(optional - e.g. 500; leave empty for the whole list)</span></label>
-      <input type="text" id="max" placeholder="e.g. 500" inputmode="numeric" autocomplete="off">
-    </div>
+            <div class="field">
+              <label for="list">List type</label>
+              <select id="list">
+                <option value="following" selected>Following</option>
+                <option value="followers">Followers</option>
+              </select>
+            </div>
 
-    <div style="margin-top:14px">
-      <label for="names">Your list of usernames <span class="hint">(one per line - optional)</span></label>
-      <textarea id="names" class="mono" placeholder="johndoe&#10;@jane_smith&#10;https://www.instagram.com/someone/"></textarea>
-      <label class="drop" id="drop">
-        <input type="file" id="file" accept=".xlsx,.csv,.txt,.list">
-        <span id="dropLabel">or drop / click to upload an .xlsx, .csv or .txt file</span>
-      </label>
-    </div>
+            <div class="field">
+              <label for="max">Stop after <span class="hint">optional cap</span></label>
+              <input type="text" id="max" placeholder="e.g. 500" inputmode="numeric" autocomplete="off">
+            </div>
+          </div>
 
-    <button id="go">Generate report</button>
-    <div id="inputError" class="error-box hidden" role="alert"></div>
+          <div class="stack">
+            <div class="field">
+              <label for="names">Compare with your list <span class="hint">optional</span></label>
+              <textarea id="names" class="mono" placeholder="johndoe&#10;@jane_smith&#10;https://www.instagram.com/someone/"></textarea>
+            </div>
+
+            <div class="field">
+              <label>Upload list file</label>
+              <label class="drop" id="drop">
+                <input type="file" id="file" accept=".xlsx,.csv,.txt,.list">
+                <span id="dropLabel">Click to upload .xlsx, .csv, or .txt</span>
+              </label>
+            </div>
+
+            <button id="go" class="primary-btn">Collect and build report</button>
+            <div id="inputError" class="error-box hidden" role="alert"></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel progress-panel hidden" id="progressCard">
+        <div class="progress-wrap">
+          <div class="phase" id="phase" role="status" aria-live="polite" aria-atomic="true">Starting browser...</div>
+          <div class="count" id="count" aria-live="polite" aria-atomic="true">Preparing</div>
+          <div class="count warn hidden" id="stallHint">Instagram is slowing things down - this can take a moment.</div>
+          <div class="progress-bar" id="bar" role="progressbar" aria-label="Collection progress" aria-valuemin="0" aria-valuemax="100">
+            <div class="progress-fill"></div>
+          </div>
+        </div>
+
+        <div class="stop-row">
+          <button id="stopBtn" class="secondary-btn hidden">Stop</button>
+          <span class="stop-hint hidden" id="stopHint">Stopping and saving what is already collected...</span>
+        </div>
+
+        <div class="hidden" id="liveWrap">
+          <div class="live-title">Collected right now</div>
+          <div class="live-list" id="liveList"></div>
+        </div>
+      </section>
+
+      <div id="runError" class="error-box hidden" role="alert"></div>
+
+      <section class="panel results-panel hidden" id="resultCard">
+        <div class="stats" id="stats"></div>
+        <div id="stopNote"></div>
+        <div id="warn" aria-live="polite"></div>
+        <div id="tables"></div>
+        <a id="download" class="btn-dl hidden" href="#">Download Excel report</a>
+      </section>
+
+      <footer>Runs on your computer. No Instagram credentials are requested. Instagram may limit public results.</footer>
+    </main>
   </div>
-
-  <div class="card hidden" id="progressCard">
-    <div class="progress-wrap">
-      <div class="phase" id="phase" role="status" aria-live="polite" aria-atomic="true">Starting browser...</div>
-      <div class="count" id="count" aria-live="polite" aria-atomic="true">Preparing</div>
-      <div class="count hidden" id="stallHint" style="color:#b36b00">Instagram is throttling - still working, this can take a minute or two...</div>
-       <div class="bar" id="bar" role="progressbar" aria-label="Collection progress"
-         aria-valuemin="0" aria-valuemax="100"><div></div></div>
-    </div>
-    <div class="stop-row">
-      <button id="stopBtn" class="btn-stop hidden">■ Stop</button>
-      <span class="stop-hint hidden" id="stopHint">Stopping - saving what's collected...</span>
-    </div>
-    <div class="hidden" id="liveWrap">
-      <div class="live-title">Collecting now</div>
-      <div class="live-list" id="liveList"></div>
-    </div>
-  </div>
-
-  <div id="runError" class="error-box hidden" role="alert" style="margin-bottom:16px"></div>
-
-  <div class="card hidden" id="resultCard">
-    <div class="stats" id="stats"></div>
-    <div id="stopNote"></div>
-    <div id="warn" aria-live="polite"></div>
-    <div id="tables"></div>
-    <a id="download" class="btn-dl hidden" href="#">Download Excel report</a>
-  </div>
-
-  <footer>Everything runs locally in this folder. Only Instagram pages are visited.</footer>
-</main>
 
 <script>
 const $ = (id) => document.getElementById(id);

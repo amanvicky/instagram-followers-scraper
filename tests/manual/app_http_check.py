@@ -11,7 +11,7 @@ actual HTTP surface with urllib:
   409          second job while one is running (busy flag)
   404          unknown job / download before done
 
-Run: .venv/Scripts/python.exe _tests/_app_http_check.py
+Run: python tests/manual/app_http_check.py
 """
 import faulthandler
 import io
@@ -27,7 +27,7 @@ from pathlib import Path
 
 faulthandler.dump_traceback_later(120, exit=True)
 
-ROOT = Path(__file__).resolve().parents[1]
+ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT))
 
 import app as app_module  # noqa: E402
@@ -290,7 +290,31 @@ check("retry: workbook carries both recovered accounts",
 for job in (result, stopped_result, busy_result, batch_result, retry_result):
     name = ((job or {}).get("result") or {}).get("file")
     if name:
-        (ROOT / "output" / name).unlink(missing_ok=True)
+        try:
+            (ROOT / "output" / name).unlink(missing_ok=True)
+        except PermissionError:
+            print(f"WARN report still open until process exit: {name}", flush=True)
 
 print("ALL PASS" if not failures else f"{len(failures)} CHECK(S) FAILED", flush=True)
 sys.exit(1 if failures else 0)
+
+# --- stop flow: a job interrupted by /stop finishes 'stopped' ----------------
+fake.hang.set()
+status, body, _ = http("/start", data={"target": "nasa", "max": "40"}, want_status=200)
+stop_job_id = json.loads(body)["job_id"]
+fake.released.set()
+http(f"/stop/{stop_job_id}", want_status=200)
+deadline = time.time() + 20
+stop_result = None
+while time.time() < deadline:
+    _, sbody, _ = http(f"/status/{stop_job_id}", want_status=200)
+    stop_result = json.loads(sbody)
+    if stop_result.get("status") in {"done", "error"}:
+        break
+    time.sleep(0.1)
+check("stop request completes the job", stop_result and stop_result.get("status") == "done", str(stop_result))
+
+if failures:
+    print(f"\n{len(failures)} check(s) failed: {failures}", flush=True)
+    raise SystemExit(1)
+print("\nAll HTTP lifecycle checks passed.", flush=True)

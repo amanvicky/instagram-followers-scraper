@@ -12,7 +12,7 @@ unmodified against it. Four runs, each asserting observable behavior:
   4. missing profile -> ScrapeError "not available"
   plus a real save_to_excel -> re-read via openpyxl asserts
 
-Run: .venv/Scripts/python.exe _tests/_engine_lifecycle_check.py
+Run: python tests/manual/engine_lifecycle_check.py
 """
 import datetime as dt
 import faulthandler
@@ -28,7 +28,7 @@ faulthandler.dump_traceback_later(90, exit=True)
 from openpyxl import load_workbook
 from playwright.sync_api import sync_playwright
 
-ROOT = Path(__file__).resolve().parents[1]
+ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT))
 import scraper  # noqa: E402
 
@@ -224,7 +224,7 @@ with sync_playwright() as pw:
                   str(info.get("List complete?", "")).startswith("Possibly incomplete"),
                   str(info.get("List complete?")))
             check("Info: mode says anonymous",
-                info.get("Mode") == "Anonymous (no login)", str(info.get("Mode")))
+                  info.get("Mode") == "Anonymous (no login)", str(info.get("Mode")))
 
     context.close()
     browser.close()

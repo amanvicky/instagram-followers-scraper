@@ -1,27 +1,20 @@
-# Instagram Follower Collector
+# Instagram Public List Collector
 
-A small local web app that scrapes public Instagram follower/following lists into an Excel report. It is designed to work without a login and without a saved browser profile, so it works for anyone running it locally.
+Collect the follower or following usernames Instagram exposes on public profiles and export them to an Excel workbook. The app runs locally and does not ask for Instagram credentials.
+
+Instagram controls what logged-out visitors can see. A run may be partial or empty, and the app reports that rather than promising a complete list.
 
 ## What it does
 
-- Collects followers or following names for one or more public Instagram accounts
-- Exports a report to Excel in the `output/` folder
-- Supports compare mode against a pasted or uploaded list
-- Accepts up to 10 unique targets per batch run
-- Keeps the process local-only: it runs from your machine and talks to Instagram directly from a fresh browser context
-
-## No login required
-
-This app intentionally works in anonymous public mode. It opens a fresh Playwright browser context, loads the public dialog, and records whatever Instagram exposes without a stored session or login prompt.
-
-That means:
-
-- no account setup is required
-- no saved browser session is reused
-- some large or protected accounts may return a small sample or zero names
-- the workbook still records when the public list was blocked or incomplete
+- Collects followers or following from public profiles in a fresh browser context.
+- Processes up to 10 target accounts in one batch.
+- Compares a collected list with usernames you paste or upload.
+- Exports single-account, batch, or comparison reports as `.xlsx` workbooks.
+- Shows collection progress and records when Instagram limits the visible results.
 
 ## Quick start
+
+You need Python 3.9 or newer. On first launch, the startup script creates a virtual environment, installs the dependencies, and installs Chromium for Playwright.
 
 Windows:
 
@@ -29,51 +22,64 @@ Windows:
 start.bat
 ```
 
-macOS/Linux:
+macOS or Linux:
 
 ```bash
 ./start.sh
 ```
 
-If you are starting manually:
+The app opens in your browser and listens on your own computer. Keep the terminal window open while using it.
+
+### Manual setup
 
 ```bash
 python -m venv .venv
-.venv\Scripts\activate
-pip install -r requirements.txt
+```
+
+Activate the environment, then install the project dependencies and browser:
+
+```bash
+python -m pip install -r requirements.txt
 python -m playwright install chromium
 python app.py
 ```
 
-## Output format
+On Windows, activate with `.venv\Scripts\activate`. On macOS or Linux, use `source .venv/bin/activate`.
 
-Each run creates an Excel workbook in `output/`.
+## Use a run
 
-- single account: a follower/following sheet plus an Info sheet
-- compare mode: Matches / Not found / Extras / Info sheets
-- batch mode: a Summary sheet plus one sheet per successful target
+1. Enter one or more public Instagram usernames, separated by commas or spaces.
+2. Choose Followers or Following and, optionally, set a per-account limit.
+3. Optionally paste a reference list or upload an `.xlsx`, `.csv`, `.txt`, or `.list` file to compare.
+4. Review the result and its status, then download the Excel workbook.
 
-## Validation
+Reports are written to `output/`. Compare workbooks contain Matches, Not found, Extras, and Info sheets. Batch workbooks include a summary and a sheet for each successful target.
 
-Run the regression suite from the project root:
+## Privacy and limitations
+
+- The Flask app binds to `127.0.0.1`; it is not a hosted scraping service.
+- The browser uses a fresh context. The app does not request or reuse an Instagram login session.
+- Browser automation visits Instagram. Instagram may show a login prompt, throttle requests, change its interface, or hide some or all names.
+- Results describe only what was visible during that run. They are not guaranteed to be complete, current, or suitable as an authoritative record.
+- Use responsibly, respect Instagram's terms and rate limits, and handle exported usernames with care.
+
+## Tests
+
+Run the regression suite from the repository root:
 
 ```bash
 python -m unittest discover -s tests -t . -v
 ```
 
-The tests cover route validation, scraper behavior, public-mode login wall handling, compare mode, and workbook metadata. They do not hit Instagram directly.
+The suite covers request validation, job handling, scraper behavior, anonymous login-wall handling, comparisons, and workbook output.
 
-## Project status
+Two longer manual integration checks are kept under `tests/manual/`. They exercise a real local HTTP server and Playwright against a locally intercepted mock Instagram site:
 
-This project is intentionally a local-first, public-source utility rather than a hosted service. The app is designed to be easy to run on any machine, inspect in source form, and improve through pull requests.
+```bash
+python tests/manual/app_http_check.py
+python tests/manual/engine_lifecycle_check.py
+```
 
 ## License
 
-This project is licensed under the MIT License. See [LICENSE](LICENSE).
-
-## Notes
-
-- The app is local-only and does not require persistent login state.
-- Some Instagram profiles intentionally hide or limit their public lists.
-- Do not share a browser profile or commit local session data.
-- `browser_data/` and `output/` are ignored by git to keep the workspace clean.
+MIT. See [LICENSE](LICENSE).
