@@ -1,0 +1,12 @@
+__pycache__/
+*.pyc
+.venv/
+venv/
+browser_data/
+output/
+.vscode/
+.pytest_cache/
+.mypy_cache/
+*.log
+.DS_Store
+
